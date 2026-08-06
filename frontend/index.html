@@ -3,117 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Offline Hybrid Search Engine</title>
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Hybrid RAG Search Engine</title>
+    <meta name="description" content="Offline hybrid document search engine with semantic and keyword retrieval, powered by FAISS and BM25 with Reciprocal Rank Fusion.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Main Layout -->
-    <div class="app-layout">
-        
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2>Configuration Center</h2>
-                <p class="caption">Pure Semantic & Keyword Hybrid Search</p>
-            </div>
 
-            <div class="sidebar-section">
-                <h3>Document Ingestion</h3>
-                <div class="upload-zone" id="uploadZone">
-                    <input type="file" id="fileInput" accept=".pdf" multiple style="display: none;">
-                    <div class="upload-content">
-                        <span class="upload-icon">📁</span>
-                        <p>Click or drag PDF files here</p>
+    <div class="app-shell">
+
+        <!-- ── Sidebar ─────────────────────────────────── -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-inner">
+
+                <!-- Brand -->
+                <div class="sidebar-brand">
+                    <div class="brand-icon">⚛</div>
+                    <div>
+                        <h1 class="brand-title">RAG Search</h1>
+                        <p class="brand-subtitle">Hybrid Retrieval Engine</p>
                     </div>
                 </div>
-                <div id="uploadStatus"></div>
-            </div>
 
-            <hr>
+                <!-- Mode Switcher -->
+                <div class="mode-switcher" id="modeSwitcher">
+                    <button class="mode-btn active" data-mode="chat" id="modeBtnChat">
+                        <span class="mode-icon">💬</span> Chat
+                    </button>
+                    <button class="mode-btn" data-mode="dev" id="modeBtnDev">
+                        <span class="mode-icon">🔬</span> Developer
+                    </button>
+                    <div class="mode-indicator" id="modeIndicator"></div>
+                </div>
 
-            <div class="sidebar-section">
-                <h3>Status & Actions</h3>
-                <div id="loadedFilesBox" class="info-box" style="display: none;">
-                    <strong>Loaded Files:</strong>
-                    <ul id="loadedFilesList"></ul>
-                </div>
-                <div id="emptyFilesBox" class="warning-box">
-                    No files indexed. Ready to receive documents.
-                </div>
-                <button id="clearBtn" class="btn btn-secondary">Clear Indexed Database</button>
-            </div>
+                <!-- Document Ingestion -->
+                <div class="sidebar-section">
+                    <div class="section-label">
+                        <span class="section-icon">📄</span> Documents
+                    </div>
+                    <div class="upload-zone" id="uploadZone">
+                        <input type="file" id="fileInput" accept=".pdf" multiple style="display: none;">
+                        <div class="upload-content">
+                            <span class="upload-icon-glyph">⬆</span>
+                            <p>Drop PDF files here</p>
+                            <span class="upload-hint">or click to browse</span>
+                        </div>
+                    </div>
+                    <div id="uploadStatus"></div>
 
-            <hr>
+                    <div id="loadedFilesBox" class="files-list-box" style="display: none;">
+                        <div class="files-list-header">Indexed Files</div>
+                        <ul id="loadedFilesList"></ul>
+                    </div>
+                    <div id="emptyFilesBox" class="empty-files-notice">
+                        No files indexed yet
+                    </div>
+                </div>
 
-            <div class="sidebar-section">
-                <h3>Retrieval Tuners</h3>
-                <div class="slider-group">
-                    <label for="topK">Final Output Size (Top-K Chunks): <span id="topKVal">5</span></label>
-                    <input type="range" id="topK" min="1" max="20" value="5">
+                <!-- Model & Training -->
+                <div class="sidebar-section">
+                    <div class="section-label">
+                        <span class="section-icon">🧠</span> Model
+                    </div>
+                    <div class="model-select-group">
+                        <label for="modelSelect">Active Embedding Model</label>
+                        <select id="modelSelect" class="form-select">
+                            <option value="base">Base Model (all-MiniLM-L6-v2)</option>
+                            <option value="fine_tuned" id="fineTunedOpt">Fine-Tuned Model (Local Weights)</option>
+                        </select>
+                    </div>
+                    <button id="trainBtn" class="btn btn-primary btn-train">
+                        <span class="btn-icon">⚡</span> Fine-Tune on PDFs
+                    </button>
+                    <div id="trainStatus"></div>
                 </div>
-                <div class="slider-group">
-                    <label for="topKRetrieval">Candidate Ranking Size (N): <span id="topKRetrievalVal">20</span></label>
-                    <input type="range" id="topKRetrieval" min="10" max="100" value="20">
+
+                <!-- Retrieval Tuners (Developer Mode Only) -->
+                <div class="sidebar-section tuner-section" id="tunerSection">
+                    <div class="section-label">
+                        <span class="section-icon">⚙</span> Retrieval Tuners
+                    </div>
+                    <div class="slider-group">
+                        <label for="topK">Top-K Chunks <span class="slider-val" id="topKVal">5</span></label>
+                        <input type="range" id="topK" min="1" max="20" value="5">
+                    </div>
+                    <div class="slider-group">
+                        <label for="topKRetrieval">Candidate Size (N) <span class="slider-val" id="topKRetrievalVal">20</span></label>
+                        <input type="range" id="topKRetrieval" min="10" max="100" value="20">
+                    </div>
                 </div>
+
+                <!-- Bottom Actions -->
+                <div class="sidebar-footer">
+                    <button id="clearBtn" class="btn btn-ghost btn-clear">
+                        🗑 Clear Database
+                    </button>
+                    <div class="theme-switch-row">
+                        <span class="theme-label">☀️</span>
+                        <label class="theme-toggle">
+                            <input type="checkbox" id="themeSwitch" checked>
+                            <span class="theme-slider"></span>
+                        </label>
+                        <span class="theme-label">🌙</span>
+                    </div>
+                </div>
+
             </div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            
-            <!-- Theme Toggle Bar -->
-            <div class="top-bar">
-                <div class="theme-toggle-wrapper">
-                    <span class="theme-toggle-label">☀️ Light</span>
-                    <label class="theme-toggle">
-                        <input type="checkbox" id="themeSwitch" checked>
-                        <span class="theme-slider"></span>
-                    </label>
-                    <span class="theme-toggle-label">🌙 Dark</span>
+        <!-- ── Main Content ────────────────────────────── -->
+        <main class="main-area">
+
+            <!-- ═══ CHAT MODE VIEW ═══ -->
+            <div class="view-panel active" id="chatView">
+                <div class="chat-container">
+
+                    <!-- Chat Header -->
+                    <div class="chat-header">
+                        <div class="chat-header-left">
+                            <h2 class="chat-title">Ask your documents</h2>
+                            <span id="chatModelBadge" class="model-pill">⚡ Base Model</span>
+                        </div>
+                    </div>
+
+                    <!-- Chat Messages -->
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="chat-welcome">
+                            <div class="chat-welcome-icon">🔍</div>
+                            <h3>Welcome to RAG Chat</h3>
+                            <p>Upload a PDF and ask questions about your documents. I'll find the most relevant answers for you.</p>
+                        </div>
+                    </div>
+
+                    <!-- Chat Input Bar -->
+                    <div class="chat-input-bar">
+                        <div class="chat-input-wrapper">
+                            <textarea id="chatInput" class="chat-textarea" placeholder="Ask a question about your documents..." rows="1"></textarea>
+                            <button id="chatSendBtn" class="chat-send-btn" title="Send message">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
-            <header class="main-header">
-                <h1>Offline Hybrid Document Search</h1>
-                <p>Production-grade, zero-hallucination local text retrieval using a multi-stage Hybrid retrieval layer. Powered by FAISS (Dense) and BM25 (Sparse) joined via Reciprocal Rank Fusion.</p>
-            </header>
+            <!-- ═══ DEVELOPER MODE VIEW ═══ -->
+            <div class="view-panel" id="devView">
 
-            <div id="welcomeMessage" class="info-box welcome-box">
-                👋 Welcome! To begin, upload one or more PDF files using the uploader in the sidebar. The system will build local vector embeddings and BM25 tables completely offline.
-            </div>
-
-            <div id="searchSection" style="display: none;">
-                <div class="search-box">
-                    <h3>Semantic & Keyword Query</h3>
-                    <input type="text" id="searchInput" placeholder="e.g., What are the security compliance requirements outlined in the audit?">
+                <!-- Dev Header -->
+                <div class="dev-header">
+                    <h1 class="dev-title">Hybrid Document Search</h1>
+                    <p class="dev-subtitle">Production-grade, zero-hallucination local text retrieval using a multi-stage Hybrid retrieval layer. Powered by FAISS (Dense) and BM25 (Sparse) joined via Reciprocal Rank Fusion.</p>
+                    <div class="dev-badge-bar">
+                        <span id="activeModelBadge" class="model-pill">Model: Base Model (all-MiniLM-L6-v2)</span>
+                    </div>
                 </div>
 
-                <div id="loadingIndicator" class="loading-spinner" style="display: none;">
-                    <div class="spinner"></div>
-                    <span>Executing hybrid retrieval and fusion ranking...</span>
+                <div id="welcomeMessage" class="info-box welcome-box">
+                    👋 Welcome! Upload one or more PDF files using the sidebar to begin. The system will build local vector embeddings and BM25 tables completely offline.
                 </div>
 
-                <div id="resultsContainer"></div>
+                <div id="searchSection" style="display: none;">
+                    <div class="search-box">
+                        <h3>Semantic & Keyword Query</h3>
+                        <input type="text" id="searchInput" placeholder="e.g., What are the security compliance requirements outlined in the audit?">
+                    </div>
+
+                    <div id="loadingIndicator" class="loading-spinner" style="display: none;">
+                        <div class="spinner"></div>
+                        <span>Executing hybrid retrieval and fusion ranking...</span>
+                    </div>
+
+                    <div id="resultsContainer"></div>
+                </div>
             </div>
+
         </main>
-
     </div>
 
-    <!-- Templates -->
+    <!-- Templates (unchanged) -->
     <template id="resultCardTemplate">
         <div class="result-card">
             <div class="badge-container">
                 <span class="custom-badge badge-source"></span>
                 <span class="custom-badge badge-page"></span>
+                <span class="custom-badge badge-model"></span>
                 <span class="custom-badge badge-score"></span>
             </div>
+            <div class="direct-answer-box" style="display: none;"></div>
             <div class="card-content"></div>
             <div class="meta-rank"></div>
         </div>
     </template>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=10"></script>
+
 </body>
 </html>

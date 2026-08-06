@@ -8,3 +8,7 @@ pypdf>=4.1.0
 fastapi>=0.110.0
 uvicorn>=0.29.0
 python-multipart>=0.0.9
+datasets>=2.18.0
+accelerate>=1.1.0
+
+

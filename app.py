@@ -18,22 +18,37 @@ frontend_dir = os.path.join(os.path.dirname(__file__), "frontend")
 
 @app.get("/")
 async def root():
-    return FileResponse(os.path.join(frontend_dir, "index.html"))
+    return FileResponse(
+        os.path.join(frontend_dir, "index.html"),
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+    )
 
 @app.get("/style.css")
 async def get_style():
-    return FileResponse(os.path.join(frontend_dir, "style.css"))
+    return FileResponse(
+        os.path.join(frontend_dir, "style.css"),
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+    )
 
 @app.get("/app.js")
 async def get_js():
-    return FileResponse(os.path.join(frontend_dir, "app.js"))
+    return FileResponse(
+        os.path.join(frontend_dir, "app.js"),
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+    )
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse(os.path.join(frontend_dir, "index.html")) # Or 204 No Content
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
-    if not file.filename.endswith(".pdf"):
+    filename = file.filename or ""
+    if not filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported.")
     
-    if file.filename in indexed_files:
+    if filename in indexed_files:
         return {"success": True, "message": "Already indexed"}
 
     # Create a temporary file to save the uploaded PDF
@@ -43,9 +58,9 @@ async def upload_file(file: UploadFile = File(...)):
         tmp_file_path = tmp_file.name
 
     try:
-        success = search_engine.index_pdf(tmp_file_path, file.filename)
+        success = search_engine.index_pdf(tmp_file_path, filename)
         if success:
-            indexed_files.append(file.filename)
+            indexed_files.append(filename)
             return {"success": True, "message": "File indexed successfully"}
         else:
             return {"success": False, "detail": "Empty PDF or no parseable text."}
@@ -65,6 +80,42 @@ async def clear_database():
     indexed_files.clear()
     return {"success": True, "message": "Database cleared"}
 
+from pydantic import BaseModel
+from train_embedding import train_fine_tuned_model
+
+class SwitchModelRequest(BaseModel):
+    model_key: str
+
+@app.get("/model_status")
+async def get_model_status():
+    return search_engine.get_model_status()
+
+@app.post("/switch_model")
+async def switch_model(req: SwitchModelRequest):
+    result = search_engine.switch_model(req.model_key)
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("detail", "Error switching model"))
+    return result
+
+@app.post("/train")
+def train_model(epochs: int = 1):
+    chunks = search_engine.get_chunk_contents()
+    if not chunks:
+        raise HTTPException(status_code=400, detail="No indexed document chunks found. Please upload a PDF first.")
+    try:
+        saved_dir = train_fine_tuned_model(chunks, epochs=epochs)
+        # Automatically switch search engine to use the newly fine-tuned model
+        search_engine.switch_model("fine_tuned")
+        return {
+            "success": True, 
+            "message": f"Successfully fine-tuned SentenceTransformer model on {len(chunks)} document chunks!",
+            "saved_path": saved_dir,
+            "active_model_label": search_engine.active_model_label
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fine-tuning failed: {str(e)}")
+
+
 @app.get("/search")
 async def search(query: str, top_k: int = 5, top_k_retrieval: int = 20):
     if not indexed_files:
@@ -76,3 +127,4 @@ async def search(query: str, top_k: int = 5, top_k_retrieval: int = 20):
         top_k_retrieval=top_k_retrieval
     )
     return results
+
