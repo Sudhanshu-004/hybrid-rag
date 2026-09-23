@@ -1,0 +1,282 @@
+===============================================================================
+                       OFFLINE HYBRID RAG SEARCH ENGINE
+            COMPREHENSIVE PROJECT DOCUMENTATION & VIVA STUDY GUIDE
+===============================================================================
+Target Academic Course: MCA Semester 3 - Generative AI / NLP
+Project Name: Offline Hybrid RAG (Retrieval-Augmented Generation) Search Engine
+Architecture: Dual-Branch Dense (FAISS) + Sparse (BM25) with Reciprocal Rank Fusion (RRF) & Local Fine-Tuning
+
+
+===============================================================================
+1. PROJECT OVERVIEW & GOALS
+===============================================================================
+The Offline Hybrid RAG Search Engine is an enterprise-grade, privacy-preserving document retrieval and question-answering system. It allows users to upload PDF documents and execute high-precision semantic and keyword queries completely offline without relying on external cloud APIs or leaking proprietary document data.
+
+Traditional Retrieval-Augmented Generation (RAG) systems rely solely on either Dense Vector Search (semantic similarity) or Sparse Keyword Search (BM25/TF-IDF). Both single-strategy approaches suffer from key limitations:
+- Dense vector search understands context and synonyms but struggles with exact alphanumeric codes, SKU numbers, rare proper nouns, and acronyms.
+- Sparse keyword search handles exact matches effectively but fails when users query using synonyms, paraphrasing, or conceptual intent without matching exact keywords.
+
+To solve this, this project implements a Hybrid Retrieval Pipeline combining FAISS (Dense Search) and BM25 (Sparse Search), merged using Reciprocal Rank Fusion (RRF). Additionally, it features an on-demand local embedding fine-tuning engine using SentenceTransformers and PyTorch, enabling the embedding model to adapt to custom PDF domain vocabularies in 5–8 seconds.
+
+
+===============================================================================
+2. KEY FEATURES & HIGHLIGHTS
+===============================================================================
+1. 100% Offline & Local Execution: Zero dependency on external OpenAI/Anthropic cloud endpoints. Completely local embedding inference and fine-tuning.
+2. Dual-Branch Hybrid Retrieval:
+   - Dense Branch: FAISS vector database using 'sentence-transformers/all-MiniLM-L6-v2' (384-dimensional embeddings).
+   - Sparse Branch: BM25Okapi lexical matching with N-Gram tokenization (unigrams, bigrams, trigrams).
+3. Reciprocal Rank Fusion (RRF): Rank-based fusion algorithm combining top candidates from both branches without requiring raw score normalization ($K_{rrf} = 60$).
+4. Dynamic Local Model Fine-Tuning: On-demand fine-tuning of SentenceTransformers on user-uploaded PDF text chunks using Multiple Negatives Ranking Loss (MNRL).
+5. Out-of-Domain & Gibberish Filtering: Rejects queries that match neither sparse keywords nor fall within acceptable FAISS Euclidean distance thresholds ($L2 \le 1.35$), preventing hallucinations and bad candidate retrieval.
+6. Interactive Dual-Mode Frontend:
+   - Chat Mode: Clean conversational interface for natural language PDF querying.
+   - Developer Mode: Inspection dashboard displaying RRF scores, candidate ranks, FAISS L2 distances, BM25 scores, source page numbers, and real-time retrieval tuning controls.
+7. Dark / Light Mode Support: Sleek glassmorphism visual design with real-time theme toggles.
+
+
+===============================================================================
+3. SYSTEM ARCHITECTURE & DATA FLOW
+===============================================================================
+
+[ PDF Document Upload ]
+         │
+         ▼
+[ PyPDF Reader ] ──► Extract raw text page-by-page (Metadata: source PDF, page number)
+         │
+         ▼
+[ RecursiveCharacterTextSplitter ] ──► Split text into chunks (Size: 400 chars, Overlap: 60 chars)
+         │
+         ├─────────────────────────────────────────┐
+         ▼                                         ▼
+[ Dense Branch (FAISS) ]                 [ Sparse Branch (BM25) ]
+- HuggingFaceEmbeddings                   - Custom N-Gram Tokenizer
+  (all-MiniLM-L6-v2 or Fine-Tuned)          (Unigrams + Bigrams + Trigrams)
+- 384-dim Dense Vector Storage            - BM25Okapi Inverted Index
+         │                                         │
+         └────────────────────┬────────────────────┘
+                              │
+                      [ USER QUERY ]
+                              │
+         ┌────────────────────┴────────────────────┐
+         ▼                                         ▼
+[ FAISS Similarity Search ]               [ BM25 Keyword Search ]
+(Top-N Candidate Chunks)                  (Top-N Candidate Chunks)
+         │                                         │
+         └────────────────────┬────────────────────┘
+                              │
+                              ▼
+                [ Out-of-Domain Relevance Filter ]
+                (Rejects if BM25=0 AND FAISS L2 > 1.35)
+                              │
+                              ▼
+               [ Reciprocal Rank Fusion (RRF) ]
+               RRF_Score = 1/(60 + FAISS_Rank) + 1/(60 + BM25_Rank)
+               (Dense Weight = 1.5x when Fine-Tuned Model Active)
+                              │
+                              ▼
+               [ Top-K Ranked Document Contexts ]
+                              │
+                              ▼
+            [ Dual-Mode UI Display (Chat / Dev) ]
+
+
+===============================================================================
+4. DETAILED COMPONENT ANALYSIS
+===============================================================================
+
+-------------------------------------------------------------------------------
+4.1 Backend Web Server (app.py)
+-------------------------------------------------------------------------------
+- Framework: FastAPI with Uvicorn ASGI server.
+- Key Functions & Endpoints:
+  * GET /: Serves the main SPA frontend (index.html).
+  * POST /upload: Accepts PDF file uploads via Multipart FormData, creates a temporary file on disk, parses text with `search_engine.index_pdf()`, updates indexed files tracking, and safely cleans up temporary files.
+  * GET /search: Accepts `query`, `top_k` (default 5), and `top_k_retrieval` (default 20). Executes hybrid search and returns structured JSON containing content, source PDF, page number, chunk ID, RRF score, FAISS score/rank, and BM25 score/rank.
+  * POST /train: Triggers `train_fine_tuned_model()` on current chunk text. Automatically switches active engine embedding weights to the new fine-tuned model.
+  * POST /switch_model: Toggles active embedding model between "base" (MiniLM) and "fine_tuned" (local weights).
+  * GET /model_status: Returns active model details and verifies if local weights exist on disk.
+  * POST /clear: Resets memory structures and clears indices.
+
+-------------------------------------------------------------------------------
+4.2 Core Retrieval Logic (search_engine.py)
+-------------------------------------------------------------------------------
+- Class: `HybridSearchEngine`
+- Text Splitting Parameters:
+  * Chunk Size: 400 characters (optimized for concise paragraphs and fast vector encoding).
+  * Chunk Overlap: 60 characters (preserves sentence boundary context between adjacent chunks).
+  * Separators: `["\n\n", "\n(?=\\d+\\.)", "\n", ". ", " "]`
+- Tokenizer (`tokenize` function):
+  * Converts text to lowercase and strips non-alphanumeric characters.
+  * Generates Unigrams (single words), Bigrams (2 consecutive words), and Trigrams (3 consecutive words, e.g. "elastic load balancing"). This ensures exact phrase matching in BM25.
+- Search Pipeline:
+  1. Executes FAISS vector similarity search retrieving top $N$ candidates (`top_k_retrieval`).
+  2. Executes BM25 search over tokenized corpus retrieving top $N$ candidates.
+  3. Applies Out-of-Domain Filter: If zero BM25 keyword matches are found AND top FAISS L2 distance exceeds 1.35, returns an empty result set (prevents hallucinated/irrelevant matches).
+  4. Calculates Reciprocal Rank Fusion (RRF) scores for all candidate chunks using:
+     $Score_{RRF}(d) = w_{dense} \cdot \frac{1}{60 + rank_{dense}(d)} + w_{sparse} \cdot \frac{1}{60 + rank_{sparse}(d)}$
+     Where $w_{dense} = 1.5$ when fine-tuned model is active, and $1.0$ otherwise.
+  5. Sorts chunks by RRF score descending and returns top $K$ results.
+
+-------------------------------------------------------------------------------
+4.3 Dynamic Embedding Fine-Tuning Engine (train_embedding.py)
+-------------------------------------------------------------------------------
+- Purpose: Allows domain adaptation of embedding space directly from uploaded documents.
+- Synthetic Training Pair Generation (`extract_training_examples`):
+  * Scans indexed text chunks.
+  * Splits chunks into clean sentences using regex `re.split(r'(?<=[.!?])\s+', text)`.
+  * Pairs each sentence (as Query) with its parent text chunk (as Passage) into an `InputExample(texts=[sentence, chunk])`.
+  * Caps training pairs to top 30 to guarantee ultra-fast execution time (5–8 seconds).
+  * Fallback Strategy: If uploaded document has fewer than 2 sentences, supplies high-quality synthetic GenAI/RAG training pairs.
+- Loss Function: `MultipleNegativesRankingLoss` (MNRL).
+  * MNRL uses in-batch negatives. For a batch of $(Q_i, P_i)$ pairs, $P_i$ is treated as the positive passage for $Q_i$, while all other $P_j (j \neq i)$ in the batch serve as negative passages.
+  * Optimizes Cosine Similarity via Softmax Cross-Entropy Loss:
+    $\mathcal{L}_i = -\log \frac{\exp(sim(Q_i, P_i) / \tau)}{\sum_{j} \exp(sim(Q_i, P_j) / \tau)}$
+- Output: Saves updated model weights to `./fine_tuned_embedder/` directory.
+
+-------------------------------------------------------------------------------
+4.4 Interactive Dual-Mode Frontend (frontend/ index.html, style.css, app.js)
+-------------------------------------------------------------------------------
+- Mode 1: Chat View
+  * Clean interface mimicking AI chat assistants.
+  * Instant response rendering with source file and page citations.
+- Mode 2: Developer Dashboard
+  * Detailed ranking breakdown per retrieved chunk.
+  * Displays visual badges: Source PDF, Page Number, Model Type, RRF Score, FAISS L2 Distance, BM25 Score.
+  * Real-time Tuners: Sliders to dynamically adjust Top-K final output and Candidate Size (N).
+  * Model Switcher Dropdown & Fine-Tune Action Button with progress indicators.
+  * Full Dark/Light Theme switch with persistent CSS variable styling.
+
+
+===============================================================================
+5. TECHNICAL STACK & LIBRARIES USED
+===============================================================================
+1. Python 3.10+ (Core Backend Language)
+2. FastAPI (v0.110.0+) - High-performance asynchronous API framework.
+3. Uvicorn (v0.29.0+) - ASGI web server implementation.
+4. PyPDF (v4.1.0+) - Fast local PDF text extraction engine.
+5. LangChain (v0.1.12+) & LangChain-Community - Text chunking utilities (`RecursiveCharacterTextSplitter`) and HuggingFace wrapper.
+6. FAISS-CPU (v1.14.3+) - Facebook AI Similarity Search library for fast vector search in dense vector spaces.
+7. Rank-BM25 (v0.2.2+) - Pure Python implementation of BM25Okapi scoring algorithm.
+8. Sentence-Transformers (v2.5.1+) - Framework for state-of-the-art sentence embeddings (`all-MiniLM-L6-v2`).
+9. PyTorch & Accelerate - Deep learning backend driving embedding inference and fine-tuning.
+10. HTML5, CSS3, JavaScript (ES6+) - Responsive single-page frontend application.
+
+
+===============================================================================
+6. MATHEMATICAL & ALGORITHMIC FOUNDATIONS
+===============================================================================
+
+-------------------------------------------------------------------------------
+6.1 Dense Retrieval (FAISS Vector Search)
+-------------------------------------------------------------------------------
+Dense retrieval converts text chunks $T$ and user queries $Q$ into dense vector embeddings in $\mathbb{R}^{384}$ using SentenceTransformers:
+$\vec{v}_Q = \text{Encoder}(Q), \quad \vec{v}_D = \text{Encoder}(D)$
+
+FAISS computes the Euclidean (L2) distance between query vector $\vec{v}_Q$ and candidate document vectors $\vec{v}_D$:
+$d_{L2}(\vec{v}_Q, \vec{v}_D) = \sqrt{\sum_{i=1}^{384} (v_{Q,i} - v_{D,i})^2}$
+
+Lower L2 distance values indicate higher semantic similarity.
+
+-------------------------------------------------------------------------------
+6.2 Sparse Retrieval (BM25Okapi)
+-------------------------------------------------------------------------------
+BM25 (Best Matching 25) calculates lexical relevance based on term frequency ($TF$) and inverse document frequency ($IDF$) with document length normalization:
+
+$\text{Score}_{BM25}(D, Q) = \sum_{q \in Q} \text{IDF}(q) \cdot \frac{f(q, D) \cdot (k_1 + 1)}{f(q, D) + k_1 \cdot \left(1 - b + b \cdot \frac{|D|}{\text{avgdl}}\right)}$
+
+Where:
+- $f(q, D)$ is query term frequency in document $D$.
+- $|D|$ is length of document $D$ in tokens.
+- $\text{avgdl}$ is average document length across corpus.
+- $k_1 = 1.5$ controls term frequency saturation.
+- $b = 0.75$ controls document length normalization penalty.
+- $\text{IDF}(q) = \ln \left( \frac{N - n(q) + 0.5}{n(q) + 0.5} + 1 \right)$, where $N$ is total chunks and $n(q)$ is chunks containing query term $q$.
+
+-------------------------------------------------------------------------------
+6.3 Reciprocal Rank Fusion (RRF)
+-------------------------------------------------------------------------------
+Instead of attempting to normalize raw FAISS L2 distances and BM25 scores (which live on entirely different scale distributions), RRF merges candidate lists based strictly on relative rank position:
+
+$RRF(d \in D) = \sum_{m \in M} \frac{w_m}{K_{rrf} + r_m(d)}$
+
+Where:
+- $M = \{\text{FAISS}, \text{BM25}\}$ is the set of retrieval systems.
+- $r_m(d)$ is the 1-based rank position of document $d$ in retrieval system $m$.
+- $K_{rrf} = 60$ is a smoothing constant that prevents high-ranking items from disproportionately dominating the score.
+- $w_{dense} = 1.5$ (when Fine-Tuned model active) or $1.0$ (when Base model active).
+- $w_{sparse} = 1.0$.
+
+-------------------------------------------------------------------------------
+6.4 Out-of-Domain Relevance Filtering Rule
+-------------------------------------------------------------------------------
+To prevent retrieving irrelevant or hallucinated text chunks when a user asks out-of-context or gibberish questions, the search engine enforces:
+
+$\text{If } |BM25\_Results| = 0 \text{ AND } d_{FAISS\_L2}(Q, D_{top1}) > 1.35 \implies \text{Return } [\emptyset]$
+
+This guarantees zero-hallucination behavior on out-of-domain queries.
+
+
+===============================================================================
+7. STEP-BY-STEP PROJECT EXECUTION GUIDE
+===============================================================================
+
+Step 1: Open Terminal / PowerShell and navigate to the project directory:
+   cd "d:\Study_material\MCA\MCA_3\GEN_AI\RAG PROJECT\MainProject\hybrid-rag-search"
+
+Step 2: Activate the Virtual Environment:
+   .\venv\Scripts\activate
+
+Step 3: Launch the FastAPI server using Uvicorn:
+   uvicorn app:app --reload
+
+Step 4: Open Web Browser:
+   Navigate to http://127.0.0.1:8000
+
+Step 5: How to Test the Project in Browser:
+   1. Drag and drop any sample PDF file (e.g. TestPdf.pdf) into the Documents sidebar.
+   2. Switch between "Chat" and "Developer" modes at the top of the sidebar.
+   3. Type a question in the search input box (e.g., "What are the main concepts discussed?").
+   4. Observe the hybrid search results showing matched passages, PDF file name, exact page numbers, RRF confidence scores, FAISS L2 distance, and BM25 score.
+   5. Click "Fine-Tune on PDFs" button to execute local embedding training in ~5-8 seconds, and observe automatic switching to the Fine-Tuned model.
+
+
+===============================================================================
+8. TOP VIVA INTERVIEW QUESTIONS & ANSWERS (CHEAT SHEET)
+===============================================================================
+
+Q1: What is RAG and why is it preferred over retraining an LLM?
+A: Retrieval-Augmented Generation (RAG) grounds language models on private or dynamic external knowledge bases by retrieving relevant document snippets at query time. It is far cheaper, faster, preserves data privacy, eliminates hallucinations, and allows instant document updates without requiring multi-million dollar model retraining.
+
+Q2: What is the difference between Dense Search and Sparse Search?
+A: 
+- Dense Search converts text into continuous high-dimensional vector embeddings using neural net transformers (e.g. SentenceTransformers). It captures deep semantic meaning, context, and synonyms even if words don't match exactly.
+- Sparse Search (e.g., BM25) relies on word frequency and inverted term indices. It excels at exact keyword matching, technical jargon, proper names, IDs, and numbers.
+
+Q3: Why did you use Reciprocal Rank Fusion (RRF) instead of combining raw similarity scores?
+A: Raw scores from FAISS (Euclidean L2 distance ranging $0$ to $\infty$) and BM25 (unbounded log-IDF scores) operate on completely different mathematical scales and distributions. Normalizing raw scores (e.g., Min-Max) is unstable across varying query types. RRF relies exclusively on relative rank positions ($1/(K + rank)$), providing robust, parameter-free rank aggregation.
+
+Q4: What embedding model is used in this project?
+A: 'sentence-transformers/all-MiniLM-L6-v2'. It produces 384-dimensional dense vectors. It is chosen because it offers an optimal tradeoff between lightweight memory footprint, blazing-fast CPU inference speed, and state-of-the-art semantic representation.
+
+Q5: How does the local fine-tuning mechanism work in your project?
+A: When the user clicks "Fine-Tune on PDFs", the system extracts sentences from indexed PDF chunks and pairs each sentence with its parent chunk text as an InputExample(query, passage). It trains the SentenceTransformer model for 1 epoch using `MultipleNegativesRankingLoss` (MNRL). This pulls relevant document queries closer to their passages in vector space while treating other batch items as negative samples.
+
+Q6: How do you handle text chunking and why is chunking necessary?
+A: We use `RecursiveCharacterTextSplitter` with a chunk size of 400 characters and an overlap of 60 characters. Chunking is mandatory because embedding models and transformer context windows have token limits (e.g., 256 or 512 tokens). Smaller chunks ensure distinct semantic topics aren't blurred together, producing higher quality retrieval.
+
+Q7: What is the purpose of N-Gram tokenization in your BM25 implementation?
+A: Standard BM25 tokenizers split text into single words (unigrams). Our custom tokenizer generates unigrams, bigrams (2 words), and trigrams (3 words). This enables exact phrase matching for multi-word technical concepts like "elastic load balancing" or "database transaction log".
+
+Q8: How does the system handle out-of-domain or irrelevant queries?
+A: Through a strict threshold filter: if BM25 returns 0 keyword matches and FAISS top candidate L2 distance exceeds 1.35, the query is classified as out-of-domain and rejected before returning candidate results, preventing hallucinations.
+
+Q9: What is the role of FastAPI and Uvicorn in your project?
+A: FastAPI provides an asynchronous, high-throughput REST API layer to handle file uploads, query requests, model switching, and fine-tuning execution. Uvicorn is an ASGI (Asynchronous Server Gateway Interface) web server that executes the FastAPI backend.
+
+Q10: Why is this architecture suitable for enterprise/academic privacy requirements?
+A: Entire document ingestion, vector encoding, BM25 indexing, fine-tuning, and retrieval happen completely offline on local CPU hardware. No document text or user query ever leaves the machine.
+
+===============================================================================
+                          END OF VIVA STUDY GUIDE
+===============================================================================

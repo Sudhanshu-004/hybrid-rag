@@ -1,0 +1,9 @@
+cd hybrid-rag-search 
+
+.\venv\Scripts\activate 
+
+uvicorn app:app --reload (When making live changes)
+
+or 
+
+uvicorn app:app (When not making any live changes)

@@ -8,69 +8,37 @@ tags:
 - loss:MultipleNegativesRankingLoss
 base_model: sentence-transformers/all-MiniLM-L6-v2
 widget:
-- source_sentence: 'Q: What is a verb?'
+- source_sentence: 'A: Indian English.'
   sentences:
-  - "28. Q: What is a noun? \nA: A naming word. \n29. Q: What is a verb? \nA: A word\
-    \ showing action or state."
-  - "A: Angles, Saxons, Jutes. \n5. Q: Which epic is the greatest Old English poem?\
-    \ \nA: Beowulf. \n6. Q: Which event in 1066 changed English greatly? \nA: Norman\
-    \ Conquest. \n7. Q: Which language heavily influenced English after 1066? \nA:\
-    \ French. \n8. Q: Who is called the “Father of English Poetry”? \nA: Geoffrey\
-    \ Chaucer. \n9. Q: What was Middle English (1100–1500) characterized by?"
-  - "15. Q: What is Great V owel Shift? \nA: Major change in English pronunciation\
-    \ (15th–17th c). \n16. Q: What is Modern English period? \nA: 1700–present. \n\
-    17. Q: Which dictionary standardized English spelling? \nA: Samuel Johnson’s Dictionary\
-    \ (1755). \n18. Q: Who wrote the first American English dictionary? \nA: Noah\
-    \ Webster. \n19. Q: What is Old English also called? \nA: Anglo-Saxon."
-- source_sentence: 'A: King James Bible (1611).'
-  sentences:
-  - "28. Q: What is a noun? \nA: A naming word. \n29. Q: What is a verb? \nA: A word\
-    \ showing action or state."
-  - "100 Short Questions & Answers on English Language \n \nHistory of English Language\
-    \ (1–25) \n1. Q: What language family does English belong to? \nA: Indo-European.\
-    \ \n2. Q: What branch of Indo-European does English belong to? \nA: Germanic.\
-    \ \n3. Q: Who were the earliest inhabitants influencing English? \nA: Celts. \n\
-    4. Q: Which tribes brought Old English to Britain? \nA: Angles, Saxons, Jutes."
-  - "A: French vocabulary and simpler grammar. \n10. Q: Which Bible translation influenced\
-    \ Early Modern English? \nA: King James Bible (1611). \n11. Q: Which playwright\
-    \ shaped English language? \nA: William Shakespeare. \n12. Q: When did printing\
-    \ arrive in England? \nA: 1476. \n13. Q: Who introduced the printing press to\
-    \ England? \nA: William Caxton. \n14. Q: Which period is called “Early Modern\
-    \ English”?"
-- source_sentence: 'A: Runic and later Latin alphabet.'
-  sentences:
-  - "A: Angles, Saxons, Jutes. \n5. Q: Which epic is the greatest Old English poem?\
-    \ \nA: Beowulf. \n6. Q: Which event in 1066 changed English greatly? \nA: Norman\
-    \ Conquest. \n7. Q: Which language heavily influenced English after 1066? \nA:\
-    \ French. \n8. Q: Who is called the “Father of English Poetry”? \nA: Geoffrey\
-    \ Chaucer. \n9. Q: What was Middle English (1100–1500) characterized by?"
   - "24. Q: Which English variety is spoken in India? \nA: Indian English. \n25. Q:\
     \ Which is the world’s most spoken language (native + non-native)? \nA: English.\
     \ \n \nGrammar & Structure (26–50) \n26. Q: How many tenses are there in English?\
     \ \nA: 12. \n27. Q: What are the 8 parts of speech? \nA: Noun, Pronoun, Verb,\
     \ Adjective, Adverb, Preposition, Conjunction, Interjection. \n28. Q: What is\
     \ a noun?"
-  - "19. Q: What is Old English also called? \nA: Anglo-Saxon. \n20. Q: What script\
-    \ was Old English written in? \nA: Runic and later Latin alphabet. \n21. Q: Which\
-    \ English is used worldwide today? \nA: Global English. \n22. Q: Which is the\
-    \ first English novel? \nA: Pamela by Samuel Richardson. \n23. Q: What is the\
-    \ official language of the UK? \nA: English. \n24. Q: Which English variety is\
-    \ spoken in India?"
-- source_sentence: 'Q: What is an adjective?'
+  - "14. Q: Which period is called “Early Modern English”? \nA: 1500–1700."
+  - "100 Short Questions & Answers on English Language \n \nHistory of English Language\
+    \ (1–25) \n1. Q: What language family does English belong to? \nA: Indo-European.\
+    \ \n2. Q: What branch of Indo-European does English belong to? \nA: Germanic.\
+    \ \n3. Q: Who were the earliest inhabitants influencing English? \nA: Celts. \n\
+    4. Q: Which tribes brought Old English to Britain? \nA: Angles, Saxons, Jutes."
+- source_sentence: 'A: King James Bible (1611).'
   sentences:
+  - "A: French vocabulary and simpler grammar. \n10. Q: Which Bible translation influenced\
+    \ Early Modern English? \nA: King James Bible (1611). \n11. Q: Which playwright\
+    \ shaped English language? \nA: William Shakespeare. \n12. Q: When did printing\
+    \ arrive in England? \nA: 1476. \n13. Q: Who introduced the printing press to\
+    \ England? \nA: William Caxton. \n14. Q: Which period is called “Early Modern\
+    \ English”?"
   - "28. Q: What is a noun? \nA: A naming word. \n29. Q: What is a verb? \nA: A word\
     \ showing action or state."
-  - "30. Q: What is an adjective? \nA: A word describing a noun. \n31. Q: What is\
-    \ an adverb? \nA: A word modifying a verb, adjective, or another adverb. \n32.\
-    \ Q: What is a pronoun? \nA: A word replacing a noun. \n33. Q: What is a conjunction?\
-    \ \nA: A word joining clauses or words. \n34. Q: What is a preposition? \nA: A\
-    \ word showing relation (in, on, at). \n35. Q: What is an interjection?"
-  - "30. Q: What is an adjective? \nA: A word describing a noun. \n31. Q: What is\
-    \ an adverb? \nA: A word modifying a verb, adjective, or another adverb. \n32.\
-    \ Q: What is a pronoun? \nA: A word replacing a noun. \n33. Q: What is a conjunction?\
-    \ \nA: A word joining clauses or words. \n34. Q: What is a preposition? \nA: A\
-    \ word showing relation (in, on, at). \n35. Q: What is an interjection?"
-- source_sentence: 'Q: Which event in 1066 changed English greatly?'
+  - "A: French vocabulary and simpler grammar. \n10. Q: Which Bible translation influenced\
+    \ Early Modern English? \nA: King James Bible (1611). \n11. Q: Which playwright\
+    \ shaped English language? \nA: William Shakespeare. \n12. Q: When did printing\
+    \ arrive in England? \nA: 1476. \n13. Q: Who introduced the printing press to\
+    \ England? \nA: William Caxton. \n14. Q: Which period is called “Early Modern\
+    \ English”?"
+- source_sentence: 'Q: Which English variety is spoken in India?'
   sentences:
   - "35. Q: What is an interjection? \nA: A word showing sudden feeling (Oh!, Wow!).\
     \ \n36. Q: What is a clause? \nA: Group of words with a subject and verb. \n37.\
@@ -78,16 +46,50 @@ widget:
     \ is an article? \nA: A, an, the. \n39. Q: Which article is definite? \nA: The.\
     \ \n40. Q: Which article is indefinite? \nA: A, An. \n41. Q: What are transitive\
     \ verbs?"
-  - "100 Short Questions & Answers on English Language \n \nHistory of English Language\
-    \ (1–25) \n1. Q: What language family does English belong to? \nA: Indo-European.\
-    \ \n2. Q: What branch of Indo-European does English belong to? \nA: Germanic.\
-    \ \n3. Q: Who were the earliest inhabitants influencing English? \nA: Celts. \n\
-    4. Q: Which tribes brought Old English to Britain? \nA: Angles, Saxons, Jutes."
-  - "A: Angles, Saxons, Jutes. \n5. Q: Which epic is the greatest Old English poem?\
-    \ \nA: Beowulf. \n6. Q: Which event in 1066 changed English greatly? \nA: Norman\
-    \ Conquest. \n7. Q: Which language heavily influenced English after 1066? \nA:\
-    \ French. \n8. Q: Who is called the “Father of English Poetry”? \nA: Geoffrey\
-    \ Chaucer. \n9. Q: What was Middle English (1100–1500) characterized by?"
+  - "15. Q: What is Great V owel Shift? \nA: Major change in English pronunciation\
+    \ (15th–17th c). \n16. Q: What is Modern English period? \nA: 1700–present. \n\
+    17. Q: Which dictionary standardized English spelling? \nA: Samuel Johnson’s Dictionary\
+    \ (1755). \n18. Q: Who wrote the first American English dictionary? \nA: Noah\
+    \ Webster. \n19. Q: What is Old English also called? \nA: Anglo-Saxon."
+  - "24. Q: Which English variety is spoken in India? \nA: Indian English. \n25. Q:\
+    \ Which is the world’s most spoken language (native + non-native)? \nA: English.\
+    \ \n \nGrammar & Structure (26–50) \n26. Q: How many tenses are there in English?\
+    \ \nA: 12. \n27. Q: What are the 8 parts of speech? \nA: Noun, Pronoun, Verb,\
+    \ Adjective, Adverb, Preposition, Conjunction, Interjection. \n28. Q: What is\
+    \ a noun?"
+- source_sentence: 'A: Runic and later Latin alphabet.'
+  sentences:
+  - "28. Q: What is a noun? \nA: A naming word. \n29. Q: What is a verb? \nA: A word\
+    \ showing action or state."
+  - "19. Q: What is Old English also called? \nA: Anglo-Saxon. \n20. Q: What script\
+    \ was Old English written in? \nA: Runic and later Latin alphabet. \n21. Q: Which\
+    \ English is used worldwide today? \nA: Global English. \n22. Q: Which is the\
+    \ first English novel? \nA: Pamela by Samuel Richardson. \n23. Q: What is the\
+    \ official language of the UK? \nA: English. \n24. Q: Which English variety is\
+    \ spoken in India?"
+  - "15. Q: What is Great V owel Shift? \nA: Major change in English pronunciation\
+    \ (15th–17th c). \n16. Q: What is Modern English period? \nA: 1700–present. \n\
+    17. Q: Which dictionary standardized English spelling? \nA: Samuel Johnson’s Dictionary\
+    \ (1755). \n18. Q: Who wrote the first American English dictionary? \nA: Noah\
+    \ Webster. \n19. Q: What is Old English also called? \nA: Anglo-Saxon."
+- source_sentence: 'A: Major change in English pronunciation (15th–17th c).'
+  sentences:
+  - "35. Q: What is an interjection? \nA: A word showing sudden feeling (Oh!, Wow!).\
+    \ \n36. Q: What is a clause? \nA: Group of words with a subject and verb. \n37.\
+    \ Q: What is a phrase? \nA: Group of words without subject–verb. \n38. Q: What\
+    \ is an article? \nA: A, an, the. \n39. Q: Which article is definite? \nA: The.\
+    \ \n40. Q: Which article is indefinite? \nA: A, An. \n41. Q: What are transitive\
+    \ verbs?"
+  - "30. Q: What is an adjective? \nA: A word describing a noun. \n31. Q: What is\
+    \ an adverb? \nA: A word modifying a verb, adjective, or another adverb. \n32.\
+    \ Q: What is a pronoun? \nA: A word replacing a noun. \n33. Q: What is a conjunction?\
+    \ \nA: A word joining clauses or words. \n34. Q: What is a preposition? \nA: A\
+    \ word showing relation (in, on, at). \n35. Q: What is an interjection?"
+  - "15. Q: What is Great V owel Shift? \nA: Major change in English pronunciation\
+    \ (15th–17th c). \n16. Q: What is Modern English period? \nA: 1700–present. \n\
+    17. Q: Which dictionary standardized English spelling? \nA: Samuel Johnson’s Dictionary\
+    \ (1755). \n18. Q: Who wrote the first American English dictionary? \nA: Noah\
+    \ Webster. \n19. Q: What is Old English also called? \nA: Anglo-Saxon."
 pipeline_tag: sentence-similarity
 library_name: sentence-transformers
 ---
@@ -142,9 +144,9 @@ from sentence_transformers import SentenceTransformer
 model = SentenceTransformer("sentence_transformers_model_id")
 # Run inference
 sentences = [
-    'Q: Which event in 1066 changed English greatly?',
-    'A: Angles, Saxons, Jutes. \n5. Q: Which epic is the greatest Old English poem? \nA: Beowulf. \n6. Q: Which event in 1066 changed English greatly? \nA: Norman Conquest. \n7. Q: Which language heavily influenced English after 1066? \nA: French. \n8. Q: Who is called the “Father of English Poetry”? \nA: Geoffrey Chaucer. \n9. Q: What was Middle English (1100–1500) characterized by?',
-    '100 Short Questions & Answers on English Language \n \nHistory of English Language (1–25) \n1. Q: What language family does English belong to? \nA: Indo-European. \n2. Q: What branch of Indo-European does English belong to? \nA: Germanic. \n3. Q: Who were the earliest inhabitants influencing English? \nA: Celts. \n4. Q: Which tribes brought Old English to Britain? \nA: Angles, Saxons, Jutes.',
+    'A: Major change in English pronunciation (15th–17th c).',
+    '15. Q: What is Great V owel Shift? \nA: Major change in English pronunciation (15th–17th c). \n16. Q: What is Modern English period? \nA: 1700–present. \n17. Q: Which dictionary standardized English spelling? \nA: Samuel Johnson’s Dictionary (1755). \n18. Q: Who wrote the first American English dictionary? \nA: Noah Webster. \n19. Q: What is Old English also called? \nA: Anglo-Saxon.',
+    '30. Q: What is an adjective? \nA: A word describing a noun. \n31. Q: What is an adverb? \nA: A word modifying a verb, adjective, or another adverb. \n32. Q: What is a pronoun? \nA: A word replacing a noun. \n33. Q: What is a conjunction? \nA: A word joining clauses or words. \n34. Q: What is a preposition? \nA: A word showing relation (in, on, at). \n35. Q: What is an interjection?',
 ]
 embeddings = model.encode(sentences)
 print(embeddings.shape)
@@ -153,9 +155,9 @@ print(embeddings.shape)
 # Get the similarity scores for the embeddings
 similarities = model.similarity(embeddings, embeddings)
 print(similarities)
-# tensor([[1.0000, 0.6226, 0.4337],
-#         [0.6226, 1.0000, 0.5702],
-#         [0.4337, 0.5702, 1.0000]])
+# tensor([[1.0000, 0.5804, 0.1733],
+#         [0.5804, 1.0000, 0.3393],
+#         [0.1733, 0.3393, 1.0000]])
 ```
 <!--
 ### Direct Usage (Transformers)
@@ -208,11 +210,11 @@ You can finetune this model on your own dataset.
   | modality | text                                                                              | text                                                                                |
   | details  | <ul><li>min: 7 tokens</li><li>mean: 11.63 tokens</li><li>max: 21 tokens</li></ul> | <ul><li>min: 22 tokens</li><li>mean: 95.77 tokens</li><li>max: 122 tokens</li></ul> |
 * Samples:
-  | sentence_0                                              | sentence_1                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-  |:--------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | <code>Q: What script was Old English written in?</code> | <code>19. Q: What is Old English also called? <br>A: Anglo-Saxon. <br>20. Q: What script was Old English written in? <br>A: Runic and later Latin alphabet. <br>21. Q: Which English is used worldwide today? <br>A: Global English. <br>22. Q: Which is the first English novel? <br>A: Pamela by Samuel Richardson. <br>23. Q: What is the official language of the UK? <br>A: English. <br>24. Q: Which English variety is spoken in India?</code> |
-  | <code>Q: What is Modern English period?</code>          | <code>15. Q: What is Great V owel Shift? <br>A: Major change in English pronunciation (15th–17th c). <br>16. Q: What is Modern English period? <br>A: 1700–present. <br>17. Q: Which dictionary standardized English spelling? <br>A: Samuel Johnson’s Dictionary (1755). <br>18. Q: Who wrote the first American English dictionary? <br>A: Noah Webster. <br>19. Q: What is Old English also called? <br>A: Anglo-Saxon.</code>                     |
-  | <code>Q: What is a clause?</code>                       | <code>35. Q: What is an interjection? <br>A: A word showing sudden feeling (Oh!, Wow!). <br>36. Q: What is a clause? <br>A: Group of words with a subject and verb. <br>37. Q: What is a phrase? <br>A: Group of words without subject–verb. <br>38. Q: What is an article? <br>A: A, an, the. <br>39. Q: Which article is definite? <br>A: The. <br>40. Q: Which article is indefinite? <br>A: A, An. <br>41. Q: What are transitive verbs?</code>   |
+  | sentence_0                                             | sentence_1                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+  |:-------------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | <code>A: Angles, Saxons, Jutes.</code>                 | <code>A: Angles, Saxons, Jutes. <br>5. Q: Which epic is the greatest Old English poem? <br>A: Beowulf. <br>6. Q: Which event in 1066 changed English greatly? <br>A: Norman Conquest. <br>7. Q: Which language heavily influenced English after 1066? <br>A: French. <br>8. Q: Who is called the “Father of English Poetry”? <br>A: Geoffrey Chaucer. <br>9. Q: What was Middle English (1100–1500) characterized by?</code>                       |
+  | <code>A: A word describing a noun.</code>              | <code>30. Q: What is an adjective? <br>A: A word describing a noun. <br>31. Q: What is an adverb? <br>A: A word modifying a verb, adjective, or another adverb. <br>32. Q: What is a pronoun? <br>A: A word replacing a noun. <br>33. Q: What is a conjunction? <br>A: A word joining clauses or words. <br>34. Q: What is a preposition? <br>A: A word showing relation (in, on, at). <br>35. Q: What is an interjection?</code>                  |
+  | <code>A: French vocabulary and simpler grammar.</code> | <code>A: French vocabulary and simpler grammar. <br>10. Q: Which Bible translation influenced Early Modern English? <br>A: King James Bible (1611). <br>11. Q: Which playwright shaped English language? <br>A: William Shakespeare. <br>12. Q: When did printing arrive in England? <br>A: 1476. <br>13. Q: Who introduced the printing press to England? <br>A: William Caxton. <br>14. Q: Which period is called “Early Modern English”?</code> |
 * Loss: [<code>MultipleNegativesRankingLoss</code>](https://sbert.net/docs/package_reference/sentence_transformer/losses.html#multiplenegativesrankingloss) with these parameters:
   ```json
   {
@@ -343,7 +345,7 @@ You can finetune this model on your own dataset.
 </details>
 
 ### Training Time
-- **Training**: 4.7 seconds
+- **Training**: 4.8 seconds
 
 ### Framework Versions
 - Python: 3.14.5
